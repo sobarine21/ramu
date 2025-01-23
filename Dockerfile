@@ -1,6 +1,7 @@
+# Use a base Python image
 FROM python:3.11-slim
 
-# Install OpenGL and other necessary dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libx11-dev \
@@ -11,15 +12,17 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Copy the requirements.txt into the container
 COPY requirements.txt /app/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your Streamlit app code into the container
-COPY . /app
+# Copy the rest of the application code
+COPY . /app/
 
-# Expose the Streamlit port
+# Expose the default Streamlit port
 EXPOSE 8501
 
-# Run the app
+# Run the Streamlit app
 CMD ["streamlit", "run", "streamlit_app.py"]

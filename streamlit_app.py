@@ -18,6 +18,15 @@ prompt = st.text_area("Enter your prompt:", placeholder="Describe the CAD design
 max_tokens = st.slider("Max Tokens", min_value=10, max_value=1511, value=150)
 top_p = st.slider("Top P (Controls diversity of responses)", min_value=0.1, max_value=1.0, value=0.8)
 
+# Dropdown to select output format
+output_format = st.selectbox(
+    "Select output format",
+    ["DXF (.dxf)", "STL (.stl)", "SVG (.svg)", "DWG (.dwg)"]
+)
+
+# File name input
+file_name = st.text_input("Enter the file name:", "generated_output")
+
 if st.button("Generate"):
     if not prompt.strip():
         st.error("Please enter a prompt before generating.")
@@ -37,22 +46,36 @@ if st.button("Generate"):
             response_data = response.json()
 
             if response.status_code == 200:
-                # Assuming response contains CAD data in DXF format as raw text
+                # Assuming response contains CAD data in raw text for a selected format
                 cad_data = response_data.get("choices", [{}])[0].get("text", "")
 
                 if cad_data:
-                    # Save the CAD data to a file (example: .dxf format)
-                    cad_filename = "generated_output.dxf"
+                    # Determine file extension based on the selected format
+                    if output_format == "DXF (.dxf)":
+                        cad_extension = ".dxf"
+                        mime_type = "application/dxf"
+                    elif output_format == "STL (.stl)":
+                        cad_extension = ".stl"
+                        mime_type = "application/stl"
+                    elif output_format == "SVG (.svg)":
+                        cad_extension = ".svg"
+                        mime_type = "image/svg+xml"
+                    elif output_format == "DWG (.dwg)":
+                        cad_extension = ".dwg"
+                        mime_type = "application/vnd.dwg"
+
+                    # Save the CAD data to a file with the appropriate extension
+                    cad_filename = f"{file_name}{cad_extension}"
                     with open(cad_filename, "w") as file:
                         file.write(cad_data)
 
                     # Provide download link for the generated CAD file
                     with open(cad_filename, "rb") as file:
                         st.download_button(
-                            label="Download CAD File (.dxf)",
+                            label=f"Download {output_format} file",
                             data=file,
                             file_name=cad_filename,
-                            mime="application/dxf"
+                            mime=mime_type
                         )
 
                 else:

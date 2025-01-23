@@ -1,3 +1,4 @@
 streamlit
  google-generativeai 
 cadquery
+libgl1-mesa-glx

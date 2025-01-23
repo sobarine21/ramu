@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import os
 
 # Retrieve the token from Streamlit's secrets
 token = st.secrets["api"]["FRIENDLI_TOKEN"]
@@ -36,9 +37,26 @@ if st.button("Generate"):
             response_data = response.json()
 
             if response.status_code == 200:
-                # Display the response
-                st.subheader("Generated Output")
-                st.code(response_data.get("choices", [{}])[0].get("text", "No response text found"))
+                # Assuming response contains CAD data in DXF format as raw text
+                cad_data = response_data.get("choices", [{}])[0].get("text", "")
+
+                if cad_data:
+                    # Save the CAD data to a file (example: .dxf format)
+                    cad_filename = "generated_output.dxf"
+                    with open(cad_filename, "w") as file:
+                        file.write(cad_data)
+
+                    # Provide download link for the generated CAD file
+                    with open(cad_filename, "rb") as file:
+                        st.download_button(
+                            label="Download CAD File (.dxf)",
+                            data=file,
+                            file_name=cad_filename,
+                            mime="application/dxf"
+                        )
+
+                else:
+                    st.error("No CAD data returned from the API.")
             else:
                 st.error(f"Error: {response_data.get('error', 'Unknown error occurred.')}")
         except requests.exceptions.HTTPError as http_err:
